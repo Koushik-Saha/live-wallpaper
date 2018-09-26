@@ -37,6 +37,18 @@ public class MyFragmentAdapter extends FragmentPagerAdapter{
 
     @Override
     public CharSequence getPageTitle(int position) {
-        return super.getPageTitle(position);
+        switch(position)
+        {
+            case 0:
+                return "Category";
+
+            case 1:
+                return "Daily Popular";
+
+            case 2:
+                return "Recents";
+
+        }
+        return "";
     }
 }
