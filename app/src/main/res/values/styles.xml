@@ -27,6 +27,8 @@
         <item name="android:actionBarStyle">@style/FullScreenActionBarStyle</item>
         <item name="android:windowActionBarOverlay">true</item>
         <item name="android:windowBackground">@null</item>
+        <!--<item name="windowNoTitle">true</item>-->
+        <!--<item name="android:windowFullscreen">true</item>-->
 
 
 
@@ -34,9 +36,6 @@
 
     <style name="FullScreenActionBarStyle" parent="Widget.AppCompat.ActionBar">
         <item name="android:background">@color/black_overlay</item>
-
-
-
 
     </style>
 

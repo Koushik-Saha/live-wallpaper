@@ -1,6 +1,7 @@
 package com.example.varianttecnology.androidlivewallpaper.Fragment;
 
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -14,6 +15,7 @@ import android.view.ViewGroup;
 
 import com.example.varianttecnology.androidlivewallpaper.Common.Common;
 import com.example.varianttecnology.androidlivewallpaper.Interface.ItemClickListener;
+import com.example.varianttecnology.androidlivewallpaper.ListWallpaper;
 import com.example.varianttecnology.androidlivewallpaper.Model.CategoryItem;
 import com.example.varianttecnology.androidlivewallpaper.R;
 import com.example.varianttecnology.androidlivewallpaper.ViewHolder.CategoryViewHolder;
@@ -84,6 +86,10 @@ public class CategoryFragment extends Fragment {
                 holder.setItemClickListener(new ItemClickListener() {
                     @Override
                     public void onClick(View view, int position) {
+                        Common.CATEGORY_ID_SELECTED = adapter.getRef(position).getKey();
+                        Common.CATEGORY_SELECTED = model.getName();
+                        Intent intent = new Intent(getActivity(), ListWallpaper.class);
+                        startActivity(intent);
 
                     }
                 });
