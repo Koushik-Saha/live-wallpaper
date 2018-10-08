@@ -11,4 +11,6 @@ public class Common {
     public static final int PERMISSION_REQUEST_CODE = 1000;
 
     public static WallpaperItem select_background = new WallpaperItem();
+
+    public static String select_background_key;
 }
