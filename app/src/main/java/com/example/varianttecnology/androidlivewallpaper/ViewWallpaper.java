@@ -29,6 +29,14 @@ import com.example.varianttecnology.androidlivewallpaper.Database.LocalDatabase.
 import com.example.varianttecnology.androidlivewallpaper.Database.Recents;
 import com.example.varianttecnology.androidlivewallpaper.Helper.SaveImageHelper;
 import com.example.varianttecnology.androidlivewallpaper.Model.WallpaperItem;
+import com.facebook.CallbackManager;
+import com.facebook.FacebookCallback;
+import com.facebook.FacebookException;
+import com.facebook.share.Sharer;
+import com.facebook.share.model.SharePhoto;
+import com.facebook.share.model.SharePhotoContent;
+import com.facebook.share.widget.ShareDialog;
+import com.github.clans.fab.FloatingActionMenu;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
@@ -64,11 +72,18 @@ public class ViewWallpaper extends AppCompatActivity {
     ImageView imageView;
     CoordinatorLayout rootLayout;
 
-
+    FloatingActionMenu mainFloating;
+    com.github.clans.fab.FloatingActionButton fbShare;
 
 
     CompositeDisposable compositeDisposable;
     RecentRepository recentRepository;
+
+
+
+    CallbackManager callbackManager;
+    ShareDialog shareDialog;
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -123,6 +138,32 @@ public class ViewWallpaper extends AppCompatActivity {
         }
     };
 
+    private Target facebookConvertBitmap = new Target() {
+        @Override
+        public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+            SharePhoto sharePhoto = new SharePhoto.Builder()
+                    .setBitmap(bitmap)
+                    .build();
+            if (ShareDialog.canShow(SharePhotoContent.class))
+            {
+                SharePhotoContent content = new SharePhotoContent.Builder()
+                        .addPhoto(sharePhoto)
+                        .build();
+                shareDialog.show(content);
+            }
+        }
+
+        @Override
+        public void onBitmapFailed(Drawable errorDrawable) {
+
+        }
+
+        @Override
+        public void onPrepareLoad(Drawable placeHolderDrawable) {
+
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -132,6 +173,11 @@ public class ViewWallpaper extends AppCompatActivity {
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null)
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+
+        callbackManager = CallbackManager.Factory.create();
+        shareDialog = new ShareDialog(this);
+
 
         compositeDisposable = new CompositeDisposable();
         LocalDatabase database = LocalDatabase.getInstance(this);
@@ -149,6 +195,38 @@ public class ViewWallpaper extends AppCompatActivity {
         Picasso.with(this)
                 .load(Common.select_background.getImageLink())
                 .into(imageView);
+
+
+        mainFloating = (FloatingActionMenu)findViewById(R.id.menu);
+        fbShare = (com.github.clans.fab.FloatingActionButton)findViewById(R.id.fb_share);
+        fbShare.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+
+                shareDialog.registerCallback(callbackManager, new FacebookCallback<Sharer.Result>() {
+                    @Override
+                    public void onSuccess(Sharer.Result result) {
+                        Toast.makeText(ViewWallpaper.this, "Share successful!", Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onCancel() {
+                        Toast.makeText(ViewWallpaper.this, "Share cancelled", Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onError(FacebookException error) {
+                        Toast.makeText(ViewWallpaper.this, ""+error.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+                Picasso.with(getBaseContext())
+                        .load(Common.select_background.getImageLink())
+                        .into(facebookConvertBitmap);
+
+            }
+        });
 
         floatingActionButton = (FloatingActionButton)findViewById(R.id.fabWallpaper);
         floatingActionButton.setOnClickListener(new View.OnClickListener() {
