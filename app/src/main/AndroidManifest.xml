@@ -18,9 +18,11 @@
 
 
 
-        <meta-data android:name="com.facebook.sdk.ApplicationId"
-            android:value="@string/facebook_app_id">
-        </meta-data>
+        <meta-data xmlns:tools="http://schemas.android.com/tools"
+            tools:replace="android:value"
+            android:name="com.facebook.sdk.ApplicationId"
+            android:value="@string/facebook_app_id"
+            ></meta-data>
 
         <provider
             android:authorities="com.facebook.app.FacebookContentProvider717444475295505"

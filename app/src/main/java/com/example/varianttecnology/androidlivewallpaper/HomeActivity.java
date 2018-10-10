@@ -1,6 +1,7 @@
 package com.example.varianttecnology.androidlivewallpaper;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -18,16 +19,22 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.varianttecnology.androidlivewallpaper.Adapter.MyFragmentAdapter;
 import com.example.varianttecnology.androidlivewallpaper.Common.Common;
+import com.firebase.ui.auth.AuthUI;
+import com.google.firebase.auth.FirebaseAuth;
 
 public class HomeActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     ViewPager viewPager;
     TabLayout tabLayout;
+
+    DrawerLayout drawer;
+    NavigationView navigationView;
 
 
     @Override
@@ -46,6 +53,40 @@ public class HomeActivity extends AppCompatActivity
         }
     }
 
+    //Override method onActivityResult by Ctrl+O
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == Common.SIGN_IN_REQUEST_CODE)
+        {
+            if (requestCode == RESULT_OK)
+            {
+                Snackbar.make(drawer, new StringBuilder("Welcome ")
+                        .append(FirebaseAuth.getInstance().getCurrentUser().getEmail()
+                                .toString()), Snackbar.LENGTH_SHORT)
+                        .show();
+
+                if (ActivityCompat.checkSelfPermission(this,
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
+                {
+                    requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, Common.PERMISSION_REQUEST_CODE);
+
+                }
+
+
+                viewPager = (ViewPager)findViewById(R.id.viewPager);
+                MyFragmentAdapter adapter = new MyFragmentAdapter(getSupportFragmentManager(),this);
+                viewPager.setAdapter(adapter);
+
+                tabLayout = (TabLayout)findViewById(R.id.tabLayout);
+                tabLayout.setupWithViewPager(viewPager);
+
+                loadUserInformation();
+            }
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,6 +95,30 @@ public class HomeActivity extends AppCompatActivity
         toolbar.setTitle("KOUSHIK Wallpaper");
         setSupportActionBar(toolbar);
 
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
+
+        navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+
+        if(FirebaseAuth.getInstance().getCurrentUser() == null)
+        {
+            startActivityForResult(AuthUI.getInstance().createSignInIntentBuilder().build(),
+                    Common.SIGN_IN_REQUEST_CODE);
+        }
+        else
+        {
+            Snackbar.make(drawer, new StringBuilder("Welcome ")
+                    .append(FirebaseAuth.getInstance().getCurrentUser().getEmail()
+                    .toString()), Snackbar.LENGTH_SHORT)
+                    .show();
+        }
+
+
+        //Request run time permission
         if (ActivityCompat.checkSelfPermission(this,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
         {
@@ -70,15 +135,17 @@ public class HomeActivity extends AppCompatActivity
         tabLayout.setupWithViewPager(viewPager);
 
 
+        loadUserInformation();
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.addDrawerListener(toggle);
-        toggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
+    }
+
+    private void loadUserInformation() {
+        if (FirebaseAuth.getInstance().getCurrentUser() != null){
+            View headerLayout = navigationView.getHeaderView(0);
+            TextView txt_email = (TextView)headerLayout.findViewById(R.id.txt_email);
+            txt_email.setText(FirebaseAuth.getInstance().getCurrentUser().getEmail());
+        }
     }
 
     @Override
@@ -119,18 +186,8 @@ public class HomeActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_camera) {
+        if (id == R.id.nav_view_upload) {
             // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
-
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
-
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
