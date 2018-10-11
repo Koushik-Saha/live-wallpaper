@@ -59,5 +59,8 @@ dependencies {
     implementation 'com.firebaseui:firebase-ui-auth:3.2.1'
 
     implementation 'com.google.android.gms:play-services-auth:11.8.0'
+
+
+    implementation 'com.jaredrummler:material-spinner:1.2.4'
 }
 apply plugin: 'com.google.gms.google-services'

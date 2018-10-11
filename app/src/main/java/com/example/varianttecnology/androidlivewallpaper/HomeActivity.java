@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
@@ -35,6 +36,8 @@ public class HomeActivity extends AppCompatActivity
 
     DrawerLayout drawer;
     NavigationView navigationView;
+
+    BottomNavigationView menu_bottom;
 
 
     @Override
@@ -94,6 +97,18 @@ public class HomeActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         toolbar.setTitle("KOUSHIK Wallpaper");
         setSupportActionBar(toolbar);
+
+
+        menu_bottom = (BottomNavigationView)findViewById(R.id.navigation);
+        menu_bottom.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                if (item.getItemId() == R.id.action_upload)
+                    startActivity(new Intent(HomeActivity.this,UploadWallpaper.class));
+                return false;
+            }
+        });
+
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
