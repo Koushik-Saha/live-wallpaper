@@ -1,6 +1,8 @@
 package com.example.varianttecnology.androidlivewallpaper.Common;
 
 import com.example.varianttecnology.androidlivewallpaper.Model.WallpaperItem;
+import com.example.varianttecnology.androidlivewallpaper.Remote.IComputerVision;
+import com.example.varianttecnology.androidlivewallpaper.Remote.RetrofitClient;
 
 public class Common {
     public static final String STR_CATEGORY_BACKGROUND = "CategoryBackground";
@@ -15,4 +17,16 @@ public class Common {
     public static WallpaperItem select_background = new WallpaperItem();
 
     public static String select_background_key;
+
+    public static String BASE_URL="https://westcentralus.api.cognitive.microsoft.com/vision/v1.0/";
+
+    public static IComputerVision getComputerVisionAPI()
+    {
+        return RetrofitClient.getClient(BASE_URL).create(IComputerVision.class);
+    }
+
+    public static String getAPIAdultEndPoint()
+    {
+        return new StringBuilder(BASE_URL).append("analyze?visualFeatures=Adult&language=en").toString();
+    }
 }

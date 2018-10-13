@@ -4,7 +4,7 @@ android {
     compileSdkVersion 27
     defaultConfig {
         applicationId "com.example.varianttecnology.androidlivewallpaper"
-        minSdkVersion 26
+        minSdkVersion 23
         targetSdkVersion 26
         versionCode 1
         versionName "1.0"
@@ -62,5 +62,8 @@ dependencies {
 
 
     implementation 'com.jaredrummler:material-spinner:1.2.4'
+
+    implementation 'com.squareup.retrofit2:retrofit:2.3.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.3.0'
 }
 apply plugin: 'com.google.gms.google-services'

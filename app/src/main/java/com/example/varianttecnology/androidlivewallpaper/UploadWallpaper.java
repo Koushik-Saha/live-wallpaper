@@ -14,8 +14,11 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.example.varianttecnology.androidlivewallpaper.Common.Common;
+import com.example.varianttecnology.androidlivewallpaper.Model.AnalyzeModel.ComputerVision;
+import com.example.varianttecnology.androidlivewallpaper.Model.AnalyzeModel.URLUpload;
 import com.example.varianttecnology.androidlivewallpaper.Model.CategoryItem;
 import com.example.varianttecnology.androidlivewallpaper.Model.WallpaperItem;
+import com.example.varianttecnology.androidlivewallpaper.Remote.IComputerVision;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
@@ -38,26 +41,34 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 public class UploadWallpaper extends AppCompatActivity {
 
     ImageView image_preview;
-    Button btn_upload,btn_browser;
+    Button btn_upload,btn_browser,btn_submit;
     MaterialSpinner spinner;
     //Material Spinner Data
     Map<String,String> spinnerData = new HashMap<>();
 
     private Uri filePath;
 
-    String categoryIdSelect="";
+    String categoryIdSelect="",directUrl="",nameOfFile="";
 
     //FireStorage
     FirebaseStorage storage;
     StorageReference storageReference;
 
+    IComputerVision mService;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_upload_wallpaper);
+
+        mService = Common.getComputerVisionAPI();
 
         //Firebase Storage Init
         storage = FirebaseStorage.getInstance();
@@ -67,6 +78,7 @@ public class UploadWallpaper extends AppCompatActivity {
         image_preview = (ImageView)findViewById(R.id.image_preview);
         btn_browser = (Button)findViewById(R.id.btn_browser);
         btn_upload = (Button)findViewById(R.id.btn_upload);
+        btn_submit = (Button)findViewById(R.id.btn_submit);
         spinner = (MaterialSpinner)findViewById(R.id.spinner);
 
         //Load Spinner Data
@@ -90,7 +102,62 @@ public class UploadWallpaper extends AppCompatActivity {
             }
         });
 
+        btn_submit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                detectAdultContent(directUrl);
+            }
+        });
+
     }
+
+    private void detectAdultContent(final String directUrl) {
+        if (directUrl.isEmpty())
+            Toast.makeText(this, "Picture not uploaded", Toast.LENGTH_SHORT).show();
+        else
+        {
+            final ProgressDialog progressDialog = new ProgressDialog(this);
+            progressDialog.setMessage("Analyzing Image...");
+            progressDialog.show();
+
+            mService.analyzeImage(Common.getAPIAdultEndPoint(),new URLUpload(directUrl))
+                    .enqueue(new Callback<ComputerVision>() {
+                        @Override
+                        public void onResponse(Call<ComputerVision> call, Response<ComputerVision> response) {
+                            if (!response.body().getAdult().isAdultContent())
+                            {
+                                //If picture is not contain adult content
+                                //We will save it our background gallery
+                                progressDialog.dismiss();
+                                saveUrlToCategory(categoryIdSelect,directUrl);
+                                Toast.makeText(UploadWallpaper.this, "Uploaded !!!", Toast.LENGTH_SHORT).show();
+                            }
+                            else
+                            {
+                                //IF url is adult content , we will delete it from our Firebase Storage
+                                deleteFileFromStorage(nameOfFile);
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(Call<ComputerVision> call, Throwable t) {
+                            Toast.makeText(UploadWallpaper.this, ""+t.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
+        }
+    }
+
+    private void deleteFileFromStorage(String nameOfFile) {
+        storageReference.child("images/"+nameOfFile)
+                .delete()
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Toast.makeText(UploadWallpaper.this, "Your image is adult content and will be deleted", Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
 
     private void upload() {
         if (filePath != null)
@@ -99,15 +166,22 @@ public class UploadWallpaper extends AppCompatActivity {
             progressDialog.setTitle("Uploading...");
             progressDialog.show();
 
-            StorageReference ref = storageReference.child(new StringBuilder("images/").append(UUID.randomUUID().toString())
+
+            nameOfFile = UUID.randomUUID().toString();
+            StorageReference ref = storageReference.child(new StringBuilder("images/").append(nameOfFile)
             .toString());
+
+//            StorageReference ref = storageReference.child(new StringBuilder("images/").append(UUID.randomUUID().toString())
+//                    .toString());
 
             ref.putFile(filePath)
                     .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                         @Override
                         public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                             progressDialog.dismiss();
-                            saveUrlToCategory(categoryIdSelect,taskSnapshot.getDownloadUrl().toString());
+//                            saveUrlToCategory(categoryIdSelect,taskSnapshot.getDownloadUrl().toString());
+                            directUrl = taskSnapshot.getDownloadUrl().toString();
+                            btn_submit.setEnabled(true);
                         }
                     })
                     .addOnFailureListener(new OnFailureListener() {
@@ -208,5 +282,11 @@ public class UploadWallpaper extends AppCompatActivity {
 
                     }
                 });
+    }
+
+    @Override
+    public void onBackPressed() {
+        deleteFileFromStorage(nameOfFile);
+        super.onBackPressed();
     }
 }
